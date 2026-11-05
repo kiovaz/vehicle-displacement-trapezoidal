@@ -1,6 +1,7 @@
 """
 Equipe 1: Ana Alice Dias, Caio Vasconcelos e Yasmin dos Santos
 Tema 1 - Deslocamento de um veículo | Método: Regra do Trapézio Simples
+
 Como executar (Python 3.8+):
     python trapezio_simples.py
     Opcional, para a verificação com SciPy: pip install scipy
@@ -25,6 +26,11 @@ N = 1
 # Velocidade do veículo (m/s)
 def v(t):
     return 2 + 0.4 * t + 0.05 * t ** 2
+
+
+# Segunda derivada: v'(t) = 0,4 + 0,1t  ->  v''(t) = 0,1 (constante, m/s³)
+def v_segunda_derivada(t):
+    return 0.1
 
 
 # Primitiva de v(t), em frações exatas para o valor de referência
@@ -60,7 +66,12 @@ def main():
     ea = abs(d_ref - d_num)
     er = ea / abs(d_ref) * 100
 
-    # 4. Exibição dos resultados
+    # 4. Erro de truncamento teórico: E = -(h³/12)·v''(ξ)
+    #    Como v''(t) = 0,1 é constante, qualquer ξ em [a, b] dá o mesmo
+    #    valor, e a fórmula fornece o erro exato do método nesta função.
+    e_teorico = -(h ** 3 / 12) * v_segunda_derivada(A)
+
+    # 5. Exibição dos resultados
     print(linha)
     print("  INTEGRAÇÃO NUMÉRICA - REGRA DO TRAPÉZIO SIMPLES")
     print("  Tema 1: Deslocamento de um veículo")
@@ -96,13 +107,24 @@ def main():
     elif d_num < d_ref:
         print("    O Trapézio Simples subestimou o deslocamento.")
 
-    # 5. Verificação complementar com função pronta (não substitui o método)
-    print("\n[6] Verificação complementar com scipy.integrate.trapezoid")
+    # 6. A fórmula teórica do erro reproduz exatamente o erro observado
+    print("\n[6] Conferência pelo erro de truncamento teórico")
+    print("    E = -(h³/12)·v''(ξ),  com v''(t) = 0,1 m/s³ (constante)")
+    print(f"    E = -({br(h, 0)}³/12)·0,1 = {br(e_teorico, 6)} m")
+    print(f"    Inum + E = {br(d_num + e_teorico, 6)} m   (coincide com Iref)")
+
+    # 7. Funções prontas usadas SÓ para conferência, cada uma de um item:
+    #    trapezoid confere a implementação do método; quad, a referência.
+    print("\n[7] Verificação complementar (não substitui o método)")
     try:
-        from scipy.integrate import trapezoid
-        print(f"    trapezoid = {br(trapezoid([v_a, v_b], [A, B]), 6)} m")
+        from scipy.integrate import trapezoid, quad
+        print(f"    trapezoid (confere o método)    = "
+              f"{br(trapezoid([v_a, v_b], [A, B]), 6)} m")
+        print(f"    quad (confere a referência)     = "
+              f"{br(quad(v, A, B)[0], 6)} m")
     except ImportError:
-        print("    SciPy não instalado (pip install scipy); verificação ignorada.")
+        print("    SciPy não instalado (pip install scipy); "
+              "verificação ignorada.")
 
     print("\n" + linha)
     print(f"  Resultado: deslocamento aproximado de {br(d_num, 2)} m em 10 s,")
